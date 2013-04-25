@@ -19,6 +19,7 @@ import javax.swing.*;
 
 public class Client extends JFrame {
 
+	public static ArrayList<String> usersarr = new ArrayList<String>();
 	public static ArrayList<String> msgs = new ArrayList<String>();
 	/**
 	 * 
@@ -28,6 +29,7 @@ public class Client extends JFrame {
 	JPanel mainPanel = new JPanel();
 	JTextField msgField = new JTextField();
 	JButton submit = new JButton("Submit");
+	public static JList<Object> userList;
 	public static JList<Object> msgList;
 	Socket connectSocket;
 	OutputStream outs;
@@ -46,15 +48,24 @@ public class Client extends JFrame {
 	     setDefaultCloseOperation(EXIT_ON_CLOSE);
 	     getContentPane().add(mainPanel);
 
-	     
+	     userList = new JList<Object>(usersarr.toArray());
+	     JScrollPane scrollPaneUser = new JScrollPane(userList);
+	     scrollPaneUser.setMinimumSize(new Dimension(150, 340));
+	     scrollPaneUser.setPreferredSize(new Dimension(150, 340));
+	     scrollPaneUser.setMaximumSize(new Dimension(151, 340));
+
+	     JPanel scrollPanel = new JPanel();
+	     scrollPanel.setLayout(new BoxLayout(scrollPanel, BoxLayout.LINE_AXIS));
 	     msgList = new JList<Object>(msgs.toArray());
 	     JScrollPane scrollPane = new JScrollPane(msgList);
-	     scrollPane.setMinimumSize(new Dimension(0, 400));
+	     scrollPane.setMinimumSize(new Dimension(450, 400));
 	     mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.PAGE_AXIS));
-	     mainPanel.add(scrollPane, BorderLayout.CENTER);
+	     scrollPanel.add(scrollPaneUser, BorderLayout.WEST);
+	     scrollPanel.add(scrollPane, BorderLayout.CENTER);
+	     mainPanel.add(scrollPanel, BorderLayout.CENTER);
 	     JPanel textPanel = new JPanel();
 	     textPanel.setLayout(new BoxLayout(textPanel, BoxLayout.LINE_AXIS));
-	     textPanel.setMaximumSize(new Dimension(600, 30));
+	     textPanel.setMaximumSize(new Dimension(500, 30));
 	     msgField.setPreferredSize(new Dimension(0, 30));
 	     submit.setPreferredSize(new Dimension(100, 30));
 	     textPanel.add(msgField);
@@ -123,7 +134,8 @@ public class Client extends JFrame {
 									packetId = ins.read();
 								    switch(packetId)
 									{
-										
+										case 0x01:
+											break;
 										case 0x04:
 											short msgLenght = in.readShort();
 											String msg2 = "";
@@ -137,6 +149,46 @@ public class Client extends JFrame {
 									                addToMsgList(msg);
 									            }
 									        });
+											break;
+										case 0x05:
+											short msgLenght2 = in.readShort();
+											String msg3 = "";
+											for (int i = msgLenght2; i > 0; i--)
+											{
+												msg3 += in.readChar();
+											}
+											String[] users = msg3.split("\0");
+											for (String user : users)
+											{
+												usersarr.remove(user);
+												usersarr.add(user);
+								        	}
+											userList.setListData((Object[])usersarr.toArray());
+											
+											break;
+										case 0x07:
+											short msgLenght7 = in.readShort();
+											String msg27 = "";
+											for (int i = msgLenght7; i > 0; i--)
+											{
+												msg27 += in.readChar();
+											}
+
+											usersarr.remove(msg27);
+											userList.setListData((Object[])usersarr.toArray());
+											
+											break;
+										case 0x06:
+											short msgLenght6 = in.readShort();
+											String msg26 = "";
+											for (int i = msgLenght6; i > 0; i--)
+											{
+												msg26 += in.readChar();
+											}
+											usersarr.remove(msg26);
+											usersarr.add(msg26);
+											userList.setListData((Object[])usersarr.toArray());
+											
 											break;
 										
 									}
